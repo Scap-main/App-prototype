@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Bridge - Client & Provider Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+        }
+
+        .card h3 i {
+            margin-right: 10px;
+        }
+
+        .progress-container {
+            margin: 15px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: between;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 6px;
+            transition: width 0.8s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .risk-score {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .risk-low { color: #28a745; }
+        .risk-medium { color: #ffc107; }
+        .risk-high { color: #dc3545; }
+
+        .task-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .task-urgent {
+            border-left-color: #dc3545;
+            background: #ffebee;
+        }
+
+        .task-urgent:hover {
+            background: #ffcdd2;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .resource-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .resource-item:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .availability {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .available { background: #d4edda; color: #155724; }
+        .limited { background: #fff3cd; color: #856404; }
+        .waitlist { background: #f8d7da; color: #721c24; }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .resource-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-hands-helping"></i> Resource Bridge</h1>
+            <p>Connecting clients with resources, tracking progress, and coordinating community support</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <button class="nav-tab" onclick="showTab('clients')">
+                <i class="fas fa-users"></i> Client Management
+            </button>
+            <button class="nav-tab" onclick="showTab('resources')">
+                <i class="fas fa-list-alt"></i> Resources
+            </button>
+            <button class="nav-tab" onclick="showTab('nonprofit')">
+                <i class="fas fa-handshake"></i> Nonprofit Coordination
+            </button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalClients">24</div>
+                    <div class="stat-label">Active Clients</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="highRiskClients">3</div>
+                    <div class="stat-label">High Risk</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="resourcesMatched">47</div>
+                    <div class="stat-label">Resources Matched</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="partneredNonprofits">12</div>
+                    <div class="stat-label">Partner Organizations</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Crisis Alerts</h3>
+                <div id="crisisAlerts">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <strong>Sarah M.</strong> - Risk score increased to 8.2/10. Last contact: 3 days ago.
+                            <button class="btn btn-small" onclick="openModal('contactClient')">Contact Now</button>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>Michael R.</strong> - Housing application deadline in 2 days. No recent progress.
+                            <button class="btn btn-small" onclick="openModal('sendReminder')">Send Reminder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-chart-line"></i> Community Overview</h3>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <h4>Housing Resources</h4>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Capacity</span>
+                                <span>78%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 78%"></div>
+                            </div>
+                        </div>
+                        <small>23 available spots across 8 programs</small>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Employment Services</h4>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Capacity</span>
+                                <span>45%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <small>Open enrollment in 5 programs</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Management Tab -->
+        <div id="clients" class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-user-plus"></i> Add New Client</h3>
+                <div class="input-group">
+                    <label>Client Name</label>
+                    <input type="text" id="clientName" placeholder="Enter client name">
+                </div>
+                <div class="input-group">
+                    <label>Primary Needs</label>
+                    <select id="primaryNeeds" multiple>
+                        <option value="housing">Housing</option>
+                        <option value="employment">Employment</option>
+                        <option value="education">Education</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="mental-health">Mental Health</option>
+                        <option value="financial">Financial Assistance</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="addClient()">Add Client</button>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-users"></i> Current Clients</h3>
+                <div id="clientList">
+                    <div class="task-item">
+                        <div>
+                            <strong>Sarah Martinez</strong>
+                            <div class="risk-score risk-high">Risk: 8.2/10</div>
+                            <small>Housing, Mental Health Support</small>
+                        </div>
+                        <button class="btn btn-small" onclick="viewClient('sarah')">View Details</button>
+                    </div>
+                    <div class="task-item">
+                        <div>
+                            <strong>Michael Rodriguez</strong>
+                            <div class="risk-score risk-medium">Risk: 5.1/10</div>
+                            <small>Employment, Education</small>
+                        </div>
+                        <button class="btn btn-small" onclick="viewClient('michael')">View Details</button>
+                    </div>
+                    <div class="task-item">
+                        <div>
+                            <strong>Jennifer Thompson</strong>
+                            <div class="risk-score risk-low">Risk: 2.8/10</div>
+                            <small>Financial Planning</small>
+                        </div>
+                        <button class="btn btn-small" onclick="viewClient('jennifer')">View Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-chart-bar"></i> Client Progress Tracking</h3>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Housing Stability</span>
+                        <span>65%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Financial Health</span>
+                        <span>40%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 40%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Employment Status</span>
+                        <span>30%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 30%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Social Support</span>
+                        <span>80%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 80%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-tasks"></i> Priority Tasks</h3>
+                <div id="taskList">
+                    <div class="task-item task-urgent">
+                        <div>
+                            <strong>Housing Application Due</strong>
+                            <small>Sarah M. - Due: Tomorrow</small>
+                        </div>
+                        <button class="btn btn-small">Mark Complete</button>
+                    </div>
+                    <div class="task-item">
+                        <div>
+                            <strong>Job Interview Prep</strong>
+                            <small>Michael R. - Scheduled: Friday</small>
+                        </div>
+                        <button class="btn btn-small">Mark Complete</button>
+                    </div>
+                    <div class="task-item">
+                        <div>
+                            <strong>Benefits Enrollment</strong>
+                            <small>Jennifer T. - In Progress</small>
+                        </div>
+                        <button class="btn btn-small">Mark Complete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources Tab -->
+        <div id="resources" class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-search"></i> Resource Matching</h3>
+                <div class="input-group">
+                    <label>Search Resources</label>
+                    <input type="text" id="resourceSearch" placeholder="Search by type, location, or availability" onkeyup="filterResources()">
+                </div>
+                <div class="input-group">
+                    <label>Filter by Category</label>
+                    <select id="categoryFilter" onchange="filterResources()">
+                        <option value="">All Categories</option>
+                        <option value="housing">Housing</option>
+                        <option value="employment">Employment</option>
+                        <option value="education">Education</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="financial">Financial</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="resource-grid" id="resourceGrid">
+                <div class="resource-item" data-category="housing">
+                    <h4><i class="fas fa-home"></i> Emergency Housing Program</h4>
+                    <p>Temporary housing assistance for families in crisis</p>
+                    <div class="availability available">Available</div>
+                    <p><strong>Requirements:</strong> Income verification, background check</p>
+                    <p><strong>Wait Time:</strong> 1-2 weeks</p>
+                    <p><strong>Contact:</strong> Riverside Housing Coalition</p>
+                    <button class="btn btn-small">Connect Client</button>
+                </div>
+                
+                <div class="resource-item" data-category="employment">
+                    <h4><i class="fas fa-briefcase"></i> Job Training Center</h4>
+                    <p>Skills training and job placement services</p>
+                    <div class="availability limited">Limited Spots</div>
+                    <p><strong>Requirements:</strong> Must be unemployed, HS diploma/GED</p>
+                    <p><strong>Wait Time:</strong> 3-4 weeks</p>
+                    <p><strong>Contact:</strong> Workforce Development Board</p>
+                    <button class="btn btn-small">Connect Client</button>
+                </div>
+                
+                <div class="resource-item" data-category="education">
+                    <h4><i class="fas fa-graduation-cap"></i> Adult Education Program</h4>
+                    <p>GED preparation and basic education classes</p>
+                    <div class="availability available">Available</div>
+                    <p><strong>Requirements:</strong> Age 18+, English assessment</p>
+                    <p><strong>Wait Time:</strong> Next enrollment in 2 weeks</p>
+                    <p><strong>Contact:</strong> Riverside Community College</p>
+                    <button class="btn btn-small">Connect Client</button>
+                </div>
+                
+                <div class="resource-item" data-category="healthcare">
+                    <h4><i class="fas fa-heartbeat"></i> Community Health Clinic</h4>
+                    <p>Primary healthcare services on sliding fee scale</p>
+                    <div class="availability waitlist">Waitlist</div>
+                    <p><strong>Requirements:</strong> Income documentation</p>
+                    <p><strong>Wait Time:</strong> 6-8 weeks</p>
+                    <p><strong>Contact:</strong> Riverside Health Network</p>
+                    <button class="btn btn-small">Join Waitlist</button>
+                </div>
+                
+                <div class="resource-item" data-category="financial">
+                    <h4><i class="fas fa-dollar-sign"></i> Emergency Financial Assistance</h4>
+                    <p>One-time financial help for utilities, rent, etc.</p>
+                    <div class="availability limited">Limited Funds</div>
+                    <p><strong>Requirements:</strong> Financial hardship documentation</p>
+                    <p><strong>Wait Time:</strong> 1 week</p>
+                    <p><strong>Contact:</strong> Catholic Charities</p>
+                    <button class="btn btn-small">Apply Now</button>
+                </div>
+                
+                <div class="resource-item" data-category="housing">
+                    <h4><i class="fas fa-key"></i> Transitional Housing</h4>
+                    <p>Long-term housing with supportive services</p>
+                    <div class="availability waitlist">Waitlist</div>
+                    <p><strong>Requirements:</strong> Case management participation</p>
+                    <p><strong>Wait Time:</strong> 3-6 months</p>
+                    <p><strong>Contact:</strong> Path of Life Ministries</p>
+                    <button class="btn btn-small">Join Waitlist</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nonprofit Coordination Tab -->
+        <div id="nonprofit" class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-chart-pie"></i> Community Gap Analysis</h3>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Gap Identified:</strong> Mental health services are at 95% capacity. 
+                        Consider expanding partnerships or advocating for additional funding.
+                    </div>
+                </div>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Success:</strong> Housing services coverage improved by 23% this quarter through new partnerships.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-building"></i> Partner Organizations</h3>
+                <div class="resource-grid">
+                    <div class="resource-item">
+                        <h4>Riverside Housing Coalition</h4>
+                        <p><strong>Specialties:</strong> Emergency housing, rental assistance</p>
+                        <p><strong>Current Capacity:</strong> 78% full</p>
+                        <p><strong>Strengths:</strong> Quick placement, 24/7 hotline</p>
+                        <p><strong>Gaps:</strong> Long-term housing solutions</p>
+                        <button class="btn btn-small">View Details</button>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <h4>Workforce Development Board</h4>
+                        <p><strong>Specialties:</strong> Job training, employment placement</p>
+                        <p><strong>Current Capacity:</strong> 45% full</p>
+                        <p><strong>Strengths:</strong> High job placement rate (82%)</p>
+                        <p><strong>Gaps:</strong> Advanced technical training</p>
+                        <button class="btn btn-small">View Details</button>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <h4>Riverside Health Network</h4>
+                        <p><strong>Specialties:</strong> Primary care, mental health</p>
+                        <p><strong>Current Capacity:</strong> 95% full</p>
+                        <p><strong>Strengths:</strong> Comprehensive services</p>
+                        <p><strong>Gaps:</strong> Wait times, specialist access</p>
+                        <button class="btn btn-small">View Details</button>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <h4>Catholic Charities</h4>
+                        <p><strong>Specialties:</strong> Emergency assistance, food pantry</p>
+                        <p><strong>Current Capacity:</strong> 60% of budget used</p>
+                        <p><strong>Strengths:</strong> Quick response, no wait times</p>
+                        <p><strong>Gaps:</strong> Long-term financial planning</p>
+                        <button class="btn btn-small">View Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-users"></i> Coordination Opportunities</h3>
+                <div class="task-item">
+                    <div>
+                        <strong>Mental Health Services Expansion</strong>
+                        <small>Opportunity to partner RHN with 2 additional providers</small>
+                    </div>
+                    <button class="btn btn-small">Explore Partnership</button>
+                </div>
+                <div class="task-item">
+                    <div>
+                        <strong>Job Training + Housing Combo</strong>
+                        <small>Link WDB programs with RHC transitional housing</small>
+                    </div>
+                    <button class="btn btn-small">Plan Meeting</button>
+                </div>
+                <div class="task-item">
+                    <div>
+                        <strong>Data Sharing Agreement</strong>
+                        <small>Streamline referrals between 5 major partners</small>
+                    </div>
+                    <button class="btn btn-small">Draft Agreement</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for various interactions -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalContent">
+                <!-- Content will be dynamically loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global data storage
+        let clients = [
+            {
+                id: 'sarah',
+                name: 'Sarah Martinez',
+                riskScore: 8.2,
+                needs: ['housing', 'mental-health'],
+                progress: {
+                    housing: 20,
+                    financial: 30,
+                    employment: 10,
+                    socialSupport: 60
+                },
+                tasks: [
+                    { task: 'Housing Application Due', urgent: true, deadline: 'Tomorrow' },
+                    { task: 'Mental Health Appointment', urgent: false, deadline: 'Next Week' }
+                ]
+            },
+            {
+                id: 'michael',
+                name: 'Michael Rodriguez',
+                riskScore: 5.1,
+                needs: ['employment', 'education'],
+                progress: {
+                    housing: 80,
+                    financial: 45,
+                    employment: 25,
+                    socialSupport: 70
+                },
+                tasks: [
+                    { task: 'Job Interview Prep', urgent: false, deadline: 'Friday' },
+                    { task: 'Resume Review', urgent: false, deadline: 'This Week' }
+                ]
+            },
+            {
+                id: 'jennifer',
+                name: 'Jennifer Thompson',
+                riskScore: 2.8,
+                needs: ['financial'],
+                progress: {
+                    housing: 90,
+                    financial: 60,
+                    employment: 85,
+                    socialSupport: 95
+                },
+                tasks: [
+                    { task: 'Benefits Enrollment', urgent: false, deadline: 'In Progress' }
+                ]
+            }
+        ];
+
+        let resources = [
+            {
+                id: 1,
+                name: 'Emergency Housing Program',
+                category: 'housing',
+                description: 'Temporary housing assistance for families in crisis',
+                availability: 'available',
+                requirements: 'Income verification, background check',
+                waitTime: '1-2 weeks',
+                contact: 'Riverside Housing Coalition'
+            },
+            {
+                id: 2,
+                name: 'Job Training Center',
+                category: 'employment',
+                description: 'Skills training and job placement services',
+                availability: 'limited',
+                requirements: 'Must be unemployed, HS diploma/GED',
+                waitTime: '3-4 weeks',
+                contact: 'Workforce Development Board'
+            },
+            {
+                id: 3,
+                name: 'Adult Education Program',
+                category: 'education',
+                description: 'GED preparation and basic education classes',
+                availability: 'available',
+                requirements: 'Age 18+, English assessment',
+                waitTime: 'Next enrollment in 2 weeks',
+                contact: 'Riverside Community College'
+            }
+        ];
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all nav tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+        }
+
+        // Client management functions
+        function addClient() {
+            const name = document.getElementById('clientName').value;
+            const needs = Array.from(document.getElementById('primaryNeeds').selectedOptions).map(option => option.value);
+            
+            if (name.trim() === '') {
+                alert('Please enter a client name');
+                return;
+            }
+
+            const newClient = {
+                id: name.toLowerCase().replace(/\s+/g, ''),
+                name: name,
+                riskScore: Math.random() * 10,
+                needs: needs,
+                progress: {
+                    housing: Math.floor(Math.random() * 100),
+                    financial: Math.floor(Math.random() * 100),
+                    employment: Math.floor(Math.random() * 100),
+                    socialSupport: Math.floor(Math.random() * 100)
+                },
+                tasks: []
+            };
+
+            clients.push(newClient);
+            renderClientList();
+            updateDashboardStats();
+            
+            // Clear form
+            document.getElementById('clientName').value = '';
+            document.getElementById('primaryNeeds').selectedIndex = -1;
+            
+            alert('Client added successfully!');
+        }
+
+        function renderClientList() {
+            const clientList = document.getElementById('clientList');
+            clientList.innerHTML = '';
+
+            clients.forEach(client => {
+                const riskClass = client.riskScore > 7 ? 'risk-high' : 
+                                 client.riskScore > 4 ? 'risk-medium' : 'risk-low';
+                
+                const clientItem = document.createElement('div');
+                clientItem.className = 'task-item';
+                clientItem.innerHTML = `
+                    <div>
+                        <strong>${client.name}</strong>
+                        <div class="risk-score ${riskClass}">Risk: ${client.riskScore.toFixed(1)}/10</div>
+                        <small>${client.needs.join(', ')}</small>
+                    </div>
+                    <button class="btn btn-small" onclick="viewClient('${client.id}')">View Details</button>
+                `;
+                clientList.appendChild(clientItem);
+            });
+        }
+
+        function viewClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const modalContent = `
+                <h2>${client.name} - Detailed View</h2>
+                <div class="metric-card">
+                    <h4>Risk Assessment</h4>
+                    <div class="risk-score ${client.riskScore > 7 ? 'risk-high' : client.riskScore > 4 ? 'risk-medium' : 'risk-low'}">
+                        ${client.riskScore.toFixed(1)}/10
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label"><span>Housing Stability</span><span>${client.progress.housing}%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${client.progress.housing}%"></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label"><span>Financial Health</span><span>${client.progress.financial}%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${client.progress.financial}%"></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label"><span>Employment Status</span><span>${client.progress.employment}%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${client.progress.employment}%"></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label"><span>Social Support</span><span>${client.progress.socialSupport}%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${client.progress.socialSupport}%"></div></div>
+                </div>
+                <h4>Active Tasks</h4>
+                ${client.tasks.map(task => `
+                    <div class="task-item ${task.urgent ? 'task-urgent' : ''}">
+                        <div>
+                            <strong>${task.task}</strong>
+                            <small>Due: ${task.deadline}</small>
+                        </div>
+                    </div>
+                `).join('')}
+                <button class="btn" onclick="closeModal()">Close</button>
+            `;
+            
+            document.getElementById('modalContent').innerHTML = modalContent;
+            openModal();
+        }
+
+        // Resource filtering
+        function filterResources() {
+            const searchTerm = document.getElementById('resourceSearch').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const resourceItems = document.querySelectorAll('.resource-item');
+
+            resourceItems.forEach(item => {
+                const category = item.getAttribute('data-category');
+                const text = item.textContent.toLowerCase();
+                
+                const matchesSearch = text.includes(searchTerm);
+                const matchesCategory = !categoryFilter || category === categoryFilter;
+                
+                if (matchesSearch && matchesCategory) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Modal functions
+        function openModal(type = null) {
+            if (type === 'contactClient') {
+                document.getElementById('modalContent').innerHTML = `
+                    <h2>Contact Client</h2>
+                    <div class="input-group">
+                        <label>Contact Method</label>
+                        <select>
+                            <option>Phone Call</option>
+                            <option>Text Message</option>
+                            <option>Email</option>
+                            <option>Home Visit</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Notes</label>
+                        <textarea rows="4" placeholder="Enter contact notes..."></textarea>
+                    </div>
+                    <button class="btn" onclick="closeModal()">Schedule Contact</button>
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                `;
+            } else if (type === 'sendReminder') {
+                document.getElementById('modalContent').innerHTML = `
+                    <h2>Send Reminder</h2>
+                    <div class="input-group">
+                        <label>Reminder Type</label>
+                        <select>
+                            <option>Application Deadline</option>
+                            <option>Appointment</option>
+                            <option>Document Submission</option>
+                            <option>Follow-up Task</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Message</label>
+                        <textarea rows="4" placeholder="Enter reminder message...">Hi Michael, this is a friendly reminder that your housing application is due in 2 days. Please contact us if you need assistance completing it.</textarea>
+                    </div>
+                    <button class="btn" onclick="closeModal()">Send Reminder</button>
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                `;
+            }
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            document.getElementById('totalClients').textContent = clients.length;
+            document.getElementById('highRiskClients').textContent = clients.filter(c => c.riskScore > 7).length;
+            document.getElementById('resourcesMatched').textContent = Math.floor(Math.random() * 50) + 30;
+            document.getElementById('partneredNonprofits').textContent = 12;
+        }
+
+        // Risk calculation algorithm
+        function calculateRiskScore(client) {
+            let riskScore = 0;
+            
+            // Housing instability (weight: 3.0)
+            if (client.progress.housing < 30) riskScore += 3.0;
+            else if (client.progress.housing < 60) riskScore += 1.5;
+            
+            // Financial stress (weight: 2.5)
+            if (client.progress.financial < 25) riskScore += 2.5;
+            else if (client.progress.financial < 50) riskScore += 1.2;
+            
+            // Employment status (weight: 2.0)
+            if (client.progress.employment < 20) riskScore += 2.0;
+            else if (client.progress.employment < 40) riskScore += 1.0;
+            
+            // Social support (weight: 1.5)
+            if (client.progress.socialSupport < 30) riskScore += 1.5;
+            else if (client.progress.socialSupport < 60) riskScore += 0.7;
+            
+            // Task overdue factor (weight: 1.0)
+            const urgentTasks = client.tasks.filter(t => t.urgent).length;
+            riskScore += urgentTasks * 1.0;
+            
+            return Math.min(riskScore, 10); // Cap at 10
+        }
+
+        // Initialize dashboard
+        function initializeDashboard() {
+            renderClientList();
+            updateDashboardStats();
+            
+            // Update risk scores
+            clients.forEach(client => {
+                client.riskScore = calculateRiskScore(client);
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            
+            // Close modal when clicking outside of it
+            window.onclick = function(event) {
+                const modal = document.getElementById('modal');
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
+        });
+
+        // Simulate real-time updates
+        setInterval(() => {
+            // Randomly update some progress metrics
+            clients.forEach(client => {
+                if (Math.random() < 0.1) { // 10% chance per interval
+                    const metric = ['housing', 'financial', 'employment', 'socialSupport'][Math.floor(Math.random() * 4)];
+                    client.progress[metric] = Math.max(0, Math.min(100, client.progress[metric] + (Math.random() - 0.5) * 10));
+                    client.riskScore = calculateRiskScore(client);
+                }
+            });
+            
+            updateDashboardStats();
+        }, 30000); // Update every 30 seconds
+
+        // Add sample interaction functions
+        function connectResource(resourceId, clientId = null) {
+            alert(`Resource connection initiated${clientId ? ` for client ${clientId}` : ''}. Case manager will follow up within 24 hours.`);
+        }
+
+        function markTaskComplete(taskElement) {
+            taskElement.style.opacity = '0.5';
+            taskElement.style.textDecoration = 'line-through';
+            setTimeout(() => {
+                taskElement.remove();
+            }, 2000);
+        }
+
+        // Enhanced search functionality
+        function searchClients(query) {
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(query.toLowerCase()) ||
+                client.needs.some(need => need.toLowerCase().includes(query.toLowerCase()))
+            );
+            return filteredClients;
+        }
+
+        // Generate reports
+        function generateReport(type) {
+            const reportData = {
+                totalClients: clients.length,
+                highRiskClients: clients.filter(c => c.riskScore > 7).length,
+                averageRiskScore: clients.reduce((sum, c) => sum + c.riskScore, 0) / clients.length,
+                progressAverages: {
+                    housing: clients.reduce((sum, c) => sum + c.progress.housing, 0) / clients.length,
+                    financial: clients.reduce((sum, c) => sum + c.progress.financial, 0) / clients.length,
+                    employment: clients.reduce((sum, c) => sum + c.progress.employment, 0) / clients.length,
+                    socialSupport: clients.reduce((sum, c) => sum + c.progress.socialSupport, 0) / clients.length
+                }
+            };
+            
+            console.log('Report Generated:', reportData);
+            return reportData;
+        }
+
+        // Add notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '1001';
+            notification.style.minWidth = '300px';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Export functionality for GitHub deployment
+        function exportData() {
+            const data = {
+                clients: clients,
+                resources: resources,
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'resource-bridge-data.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
