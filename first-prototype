@@ -1,0 +1,427 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  User, Home, DollarSign, Calendar, Target, AlertCircle, 
+  MessageSquare, CheckCircle, TrendingUp, Users, Building,
+  Plus, Search, Filter, Bell, Settings, Map
+} from 'lucide-react';
+
+const ResourceBridgeApp = () => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [clients, setClients] = useState([
+    {
+      id: 1,
+      name: "Sarah M.",
+      age: 19,
+      status: "active",
+      mentor: "David Chen",
+      riskLevel: "moderate",
+      goals: ["Stable Housing", "GED Completion", "Employment"],
+      metrics: {
+        housingStability: 6,
+        financialStability: 4,
+        education: 7,
+        employment: 3,
+        mentalHealth: 5,
+        socialSupport: 8
+      },
+      tasks: [
+        { id: 1, task: "Submit housing application", due: "2025-06-02", completed: false, priority: "high" },
+        { id: 2, task: "Attend GED class", due: "2025-05-31", completed: true, priority: "medium" },
+        { id: 3, task: "Job interview preparation", due: "2025-06-01", completed: false, priority: "high" }
+      ],
+      expenses: [
+        { id: 1, category: "Housing", amount: 450, date: "2025-05-25", type: "expense" },
+        { id: 2, category: "Transportation", amount: 60, date: "2025-05-28", type: "expense" },
+        { id: 3, category: "Part-time job", amount: 320, date: "2025-05-30", type: "income" }
+      ]
+    },
+    {
+      id: 2,
+      name: "Marcus J.",
+      age: 20,
+      status: "active",
+      mentor: "Lisa Rodriguez",
+      riskLevel: "low",
+      goals: ["Employment", "Independent Living", "Driver's License"],
+      metrics: {
+        housingStability: 8,
+        financialStability: 6,
+        education: 9,
+        employment: 5,
+        mentalHealth: 7,
+        socialSupport: 6
+      },
+      tasks: [
+        { id: 1, task: "DMV appointment", due: "2025-06-03", completed: false, priority: "medium" },
+        { id: 2, task: "Budget review meeting", due: "2025-06-01", completed: false, priority: "low" }
+      ],
+      expenses: [
+        { id: 1, category: "Housing", amount: 500, date: "2025-05-25", type: "expense" },
+        { id: 2, category: "Groceries", amount: 150, date: "2025-05-28", type: "expense" }
+      ]
+    }
+  ]);
+  
+  const [resources, setResources] = useState([
+    {
+      id: 1,
+      name: "Harbor House Transitional Living",
+      type: "Housing",
+      availability: "2 beds available",
+      contact: "harbor@example.com",
+      requirements: ["18-24 years old", "Income verification", "Background check"],
+      waitTime: "1-2 weeks"
+    },
+    {
+      id: 2,
+      name: "Community College GED Program",
+      type: "Education",
+      availability: "Open enrollment",
+      contact: "ged@college.edu",
+      requirements: ["Assessment test", "Commitment to 12-week program"],
+      waitTime: "Next session starts June 15"
+    },
+    {
+      id: 3,
+      name: "WorkForce Development Center",
+      type: "Employment",
+      availability: "Always accepting applications",
+      contact: "jobs@workforce.org",
+      requirements: ["Resume workshop completion", "Interview skills training"],
+      waitTime: "2-3 days for initial meeting"
+    }
+  ]);
+
+  const [nonprofits, setNonprofits] = useState([
+    {
+      id: 1,
+      name: "Youth Haven",
+      focus: "Housing & Basic Needs",
+      currentCapacity: "85%",
+      gaps: ["Mental health services", "Transportation"],
+      strengths: ["Emergency housing", "Case management"]
+    },
+    {
+      id: 2,
+      name: "Future Builders",
+      focus: "Education & Employment",
+      currentCapacity: "60%",
+      gaps: ["Housing partnerships", "Childcare"],
+      strengths: ["Job training", "GED prep", "College support"]
+    }
+  ]);
+
+  const calculateRiskScore = (client) => {
+    const weights = {
+      housingStability: 0.25,
+      financialStability: 0.20,
+      employment: 0.20,
+      mentalHealth: 0.15,
+      education: 0.10,
+      socialSupport: 0.10
+    };
+    
+    return Object.entries(client.metrics).reduce((score, [key, value]) => {
+      return score + (10 - value) * (weights[key] || 0);
+    }, 0);
+  };
+
+  const getRiskLevel = (score) => {
+    if (score <= 2) return { level: 'low', color: 'text-green-600', bg: 'bg-green-100' };
+    if (score <= 4) return { level: 'moderate', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+    return { level: 'high', color: 'text-red-600', bg: 'bg-red-100' };
+  };
+
+  const MetricBar = ({ label, value, max = 10 }) => (
+    <div className="mb-3">
+      <div className="flex justify-between text-sm mb-1">
+        <span className="font-medium">{label}</span>
+        <span>{value}/{max}</span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div 
+          className={`h-2 rounded-full ${value >= 7 ? 'bg-green-500' : value >= 4 ? 'bg-yellow-500' : 'bg-red-500'}`}
+          style={{ width: `${(value / max) * 100}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+
+  const ClientDashboard = ({ client }) => {
+    const riskScore = calculateRiskScore(client);
+    const risk = getRiskLevel(riskScore);
+    const urgentTasks = client.tasks.filter(t => !t.completed && t.priority === 'high');
+    
+    return (
+      <div className="space-y-6">
+        {/* Risk Alert */}
+        {risk.level !== 'low' && (
+          <div className={`p-4 rounded-lg border ${risk.bg} ${risk.color} border-current`}>
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span className="font-semibold">
+                {risk.level === 'high' ? 'High Priority Support Needed' : 'Moderate Risk Detected'}
+              </span>
+            </div>
+            <p className="text-sm mt-1">
+              Consider additional check-ins and resource connection
+            </p>
+          </div>
+        )}
+
+        {/* Key Metrics */}
+        <div className="bg-white rounded-lg p-4 shadow-sm border">
+          <h3 className="font-semibold mb-4 flex items-center">
+            <TrendingUp className="h-5 w-5 mr-2" />
+            Progress Metrics
+          </h3>
+          <div className="grid grid-cols-1 gap-3">
+            <MetricBar label="Housing Stability" value={client.metrics.housingStability} />
+            <MetricBar label="Financial Stability" value={client.metrics.financialStability} />
+            <MetricBar label="Employment Status" value={client.metrics.employment} />
+            <MetricBar label="Education Progress" value={client.metrics.education} />
+            <MetricBar label="Mental Health" value={client.metrics.mentalHealth} />
+            <MetricBar label="Social Support" value={client.metrics.socialSupport} />
+          </div>
+        </div>
+
+        {/* Urgent Tasks */}
+        {urgentTasks.length > 0 && (
+          <div className="bg-white rounded-lg p-4 shadow-sm border">
+            <h3 className="font-semibold mb-3 flex items-center text-red-600">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              Urgent Tasks ({urgentTasks.length})
+            </h3>
+            {urgentTasks.map(task => (
+              <div key={task.id} className="flex items-center justify-between p-2 bg-red-50 rounded mb-2">
+                <span className="text-sm">{task.task}</span>
+                <span className="text-xs text-red-600">Due: {task.due}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg p-4 shadow-sm border text-center">
+            <div className="text-2xl font-bold text-blue-600">{client.tasks.filter(t => t.completed).length}</div>
+            <div className="text-sm text-gray-600">Tasks Completed</div>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow-sm border text-center">
+            <div className="text-2xl font-bold text-green-600">
+              ${client.expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + e.amount, 0)}
+            </div>
+            <div className="text-sm text-gray-600">Monthly Income</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ResourceMatching = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Available Resources</h2>
+        <div className="flex space-x-2">
+          <Filter className="h-5 w-5 text-gray-500" />
+          <Search className="h-5 w-5 text-gray-500" />
+        </div>
+      </div>
+      
+      {resources.map(resource => (
+        <div key={resource.id} className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-semibold">{resource.name}</h3>
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{resource.type}</span>
+          </div>
+          <p className="text-sm text-green-600 mb-2">{resource.availability}</p>
+          <p className="text-sm text-gray-600 mb-2">Wait time: {resource.waitTime}</p>
+          <div className="mb-3">
+            <p className="text-xs font-medium text-gray-700 mb-1">Requirements:</p>
+            <ul className="text-xs text-gray-600">
+              {resource.requirements.map((req, idx) => (
+                <li key={idx} className="ml-2">• {req}</li>
+              ))}
+            </ul>
+          </div>
+          <button className="w-full bg-blue-600 text-white py-2 px-4 rounded text-sm hover:bg-blue-700">
+            Connect Client
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const NonprofitCoordination = () => (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Nonprofit Coordination Hub</h2>
+      
+      <div className="bg-white rounded-lg p-4 shadow-sm border">
+        <h3 className="font-semibold mb-3">Community Gap Analysis</h3>
+        <div className="grid grid-cols-1 gap-3">
+          <div className="p-3 bg-red-50 rounded border-l-4 border-red-500">
+            <p className="font-medium text-red-800">Critical Gap: Mental Health Services</p>
+            <p className="text-sm text-red-600">3 organizations report this as their biggest referral challenge</p>
+          </div>
+          <div className="p-3 bg-yellow-50 rounded border-l-4 border-yellow-500">
+            <p className="font-medium text-yellow-800">Moderate Gap: Transportation</p>
+            <p className="text-sm text-yellow-600">Affecting access to 2 major service areas</p>
+          </div>
+        </div>
+      </div>
+
+      {nonprofits.map(org => (
+        <div key={org.id} className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-semibold">{org.name}</h3>
+            <span className="text-sm text-gray-600">Capacity: {org.currentCapacity}</span>
+          </div>
+          <p className="text-sm text-gray-600 mb-3">Focus: {org.focus}</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs font-medium text-green-700 mb-1">Strengths:</p>
+              <ul className="text-xs text-green-600">
+                {org.strengths.map((strength, idx) => (
+                  <li key={idx} className="ml-2">• {strength}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-red-700 mb-1">Service Gaps:</p>
+              <ul className="text-xs text-red-600">
+                {org.gaps.map((gap, idx) => (
+                  <li key={idx} className="ml-2">• {gap}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          
+          <button className="mt-3 w-full bg-green-600 text-white py-2 px-4 rounded text-sm hover:bg-green-700">
+            Coordinate Resources
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const ClientList = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Active Clients</h2>
+        <button className="bg-blue-600 text-white p-2 rounded">
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
+      
+      {clients.map(client => {
+        const riskScore = calculateRiskScore(client);
+        const risk = getRiskLevel(riskScore);
+        const urgentTasks = client.tasks.filter(t => !t.completed && t.priority === 'high').length;
+        
+        return (
+          <div key={client.id} className="bg-white rounded-lg p-4 shadow-sm border">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h3 className="font-semibold">{client.name}</h3>
+                <p className="text-sm text-gray-600">Age: {client.age} | Mentor: {client.mentor}</p>
+              </div>
+              <span className={`text-xs px-2 py-1 rounded ${risk.bg} ${risk.color}`}>
+                {risk.level} risk
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm">Goals: {client.goals.slice(0, 2).join(', ')}</span>
+              {urgentTasks > 0 && (
+                <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                  {urgentTasks} urgent tasks
+                </span>
+              )}
+            </div>
+            
+            <button 
+              onClick={() => setActiveTab(`client-${client.id}`)}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded text-sm hover:bg-blue-700"
+            >
+              View Dashboard
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderContent = () => {
+    if (activeTab.startsWith('client-')) {
+      const clientId = parseInt(activeTab.split('-')[1]);
+      const client = clients.find(c => c.id === clientId);
+      return client ? <ClientDashboard client={client} /> : <div>Client not found</div>;
+    }
+
+    switch (activeTab) {
+      case 'dashboard':
+        return <ClientList />;
+      case 'resources':
+        return <ResourceMatching />;
+      case 'coordination':
+        return <NonprofitCoordination />;
+      default:
+        return <ClientList />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-md mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold text-blue-800">Resource Bridge</h1>
+            <div className="flex items-center space-x-3">
+              <Bell className="h-5 w-5 text-gray-600" />
+              <Settings className="h-5 w-5 text-gray-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-md mx-auto px-4 py-4">
+        {renderContent()}
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
+        <div className="max-w-md mx-auto px-4">
+          <div className="flex justify-around py-2">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex flex-col items-center py-2 px-3 ${activeTab === 'dashboard' ? 'text-blue-600' : 'text-gray-500'}`}
+            >
+              <Home className="h-5 w-5" />
+              <span className="text-xs mt-1">Dashboard</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('resources')}
+              className={`flex flex-col items-center py-2 px-3 ${activeTab === 'resources' ? 'text-blue-600' : 'text-gray-500'}`}
+            >
+              <Map className="h-5 w-5" />
+              <span className="text-xs mt-1">Resources</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('coordination')}
+              className={`flex flex-col items-center py-2 px-3 ${activeTab === 'coordination' ? 'text-blue-600' : 'text-gray-500'}`}
+            >
+              <Building className="h-5 w-5" />
+              <span className="text-xs mt-1">Nonprofits</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ResourceBridgeApp;
